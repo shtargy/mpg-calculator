@@ -56,6 +56,11 @@ canvas {
   background-color: #333;
   border-radius: 50%;
   bottom: 0;
+  /* Ensure the wheel is centered relative to the car-body */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* Prevent spokes from overflowing the wheel */
 }
 
 .front-wheel {
@@ -74,23 +79,25 @@ canvas {
   background-color: #fff;
   top: 50%;
   left: 50%;
-  transform-origin: bottom center;
+  transform-origin: top center; /* Set origin to top center */
+  transform: translate(-50%, 0) rotate(0deg);
 }
 
+/* Position each spoke at 0°, 90°, 180°, and 270° */
 .spoke:nth-child(1) {
-  transform: rotate(0deg);
+  transform: translate(-50%, 0) rotate(0deg);
 }
 
 .spoke:nth-child(2) {
-  transform: rotate(90deg);
+  transform: translate(-50%, 0) rotate(90deg);
 }
 
 .spoke:nth-child(3) {
-  transform: rotate(180deg);
+  transform: translate(-50%, 0) rotate(180deg);
 }
 
 .spoke:nth-child(4) {
-  transform: rotate(270deg);
+  transform: translate(-50%, 0) rotate(270deg);
 }
 
 /* Spinning Animation */

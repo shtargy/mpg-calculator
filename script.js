@@ -5,7 +5,7 @@ const tankSlider = document.getElementById('tank-slider');
 const ctx = document.getElementById('rangeChart').getContext('2d');
 const slopeDisplay = document.getElementById('slope');
 const interceptDisplay = document.getElementById('intercept');
-const car = document.querySelector('.car'); // Updated selector to target the .car div
+const wheels = document.querySelectorAll('.wheel'); // Select all wheels
 
 let chart;
 
@@ -21,12 +21,11 @@ function updateEquation(mpg, tank) {
 }
 
 function triggerCarAnimation() {
-  const wheels = document.querySelectorAll('.wheel');
   wheels.forEach(wheel => {
     wheel.classList.add('spinning');
     setTimeout(() => {
       wheel.classList.remove('spinning');
-    }, 1000); // Duration matches the animation duration
+    }, 1000); // Duration matches the CSS animation duration
   });
 }
 
