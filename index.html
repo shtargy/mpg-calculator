@@ -21,32 +21,41 @@
     <input type="range" id="tank-slider" min="1" max="30" value="12">
   </div>
   
-  <!-- Equation Display -->
-  <div id="equation">
-    y = <span id="slope">-0.04</span>x + <span id="intercept">12</span>
-  </div>
-  
   <!-- Animated Car -->
   <div class="car-container">
-    <div class="car">
-      <div class="car-body"></div>
-      <div class="wheel front-wheel">
-        <div class="spoke"></div>
-        <div class="spoke"></div>
-        <div class="spoke"></div>
-        <div class="spoke"></div>
-      </div>
-      <div class="wheel back-wheel">
-        <div class="spoke"></div>
-        <div class="spoke"></div>
-        <div class="spoke"></div>
-        <div class="spoke"></div>
-      </div>
+    <img id="cybertruckGif" src="cybertruckmiami_still.png" />
+  </div>
+
+  <div class="chart-container" style="position: relative; width: 750px; margin: 0 auto;">
+    <canvas id="rangeChart" width="750" height="375" style="display: block; margin: 0 auto;"></canvas>
+    <div id="equation" style="
+      position: absolute;
+      bottom: 50px;
+      left: 70px;
+      font-size: 16px;
+      color: #000;
+    ">
+      y = <span id="slope">-0.04</span>x + <span id="intercept">12</span>
     </div>
   </div>
-  
-  <!-- Chart -->
-  <canvas id="rangeChart" width="400" height="200"></canvas>
+
+  <style>
+    body {
+      background-color: #f0f0f0;
+    }
+    .car-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #cybertruckGif {
+      width: 200px;
+      height: auto;
+    }
+    #rangeChart {
+      background-color: #fff;
+    }
+  </style>
   
   <script src="script.js"></script>
 </body>

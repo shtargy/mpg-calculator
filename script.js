@@ -29,6 +29,24 @@ function triggerCarAnimation() {
   });
 }
 
+function showGif() {
+  const gif = document.getElementById("cybertruckGif");
+  gif.style.display = "block"; 
+  // Reload the GIF each time to restart animation if desired:
+  gif.src = "cybertruckmiami.gif?t=" + new Date().getTime();
+}
+
+function playGifOnce() {
+  const gif = document.getElementById("cybertruckGif");
+  // Switch to the GIF, forcing a reload
+  gif.src = "cybertruckmiami.gif?t=" + Date.now();
+  
+  // After 5 seconds, revert to static image
+  setTimeout(() => {
+    gif.src = "cybertruckmiami_still.png";
+  }, 5000);
+}
+
 function updateChart() {
   const mpg = parseFloat(mpgInput.value);
   const tank = parseFloat(tankInput.value);
@@ -61,6 +79,8 @@ function updateChart() {
         }]
       },
       options: {
+        responsive: false,           // Disable responsive resizing
+        maintainAspectRatio: false,  // Let width/height attributes control size
         scales: {
           x: { title: { display: true, text: 'Miles Driven' } },
           y: { title: { display: true, text: 'Fuel Remaining (gallons)' }, beginAtZero: true }
@@ -79,5 +99,14 @@ mpgInput.addEventListener('input', () => syncInputs(mpgInput, mpgSlider));
 mpgSlider.addEventListener('input', () => syncInputs(mpgSlider, mpgInput));
 tankInput.addEventListener('input', () => syncInputs(tankInput, tankSlider));
 tankSlider.addEventListener('input', () => syncInputs(tankSlider, tankInput));
+
+mpgInput.addEventListener("input", showGif);
+mpgSlider.addEventListener("input", showGif);
+tankInput.addEventListener("input", showGif);
+tankSlider.addEventListener("input", showGif);
+
+["mpg","mpg-slider","tank","tank-slider"].forEach(id => {
+  document.getElementById(id).addEventListener("input", playGifOnce);
+});
 
 updateChart();
