@@ -8,6 +8,7 @@ const interceptDisplay = document.getElementById('intercept');
 const wheels = document.querySelectorAll('.wheel'); // Select all wheels
 
 let chart;
+let gifTimeout; // Variable to store the timeout ID
 
 function calculateFuelRemaining(mpg, tank, miles) {
   return tank - (miles / mpg);
@@ -41,9 +42,15 @@ function playGifOnce() {
   // Switch to the GIF, forcing a reload
   gif.src = "cybertruckmiami.gif?t=" + Date.now();
   
+  // Clear any existing timeout to prevent multiple timers
+  if (gifTimeout) {
+    clearTimeout(gifTimeout);
+  }
+  
   // After 5 seconds, revert to static image
-  setTimeout(() => {
+  gifTimeout = setTimeout(() => {
     gif.src = "cybertruckmiami_still.png";
+    gifTimeout = null;
   }, 5000);
 }
 
