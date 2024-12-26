@@ -21,10 +21,13 @@ function updateEquation(mpg, tank) {
 }
 
 function triggerCarAnimation() {
-  car.classList.add('spinning');
-  setTimeout(() => {
-    car.classList.remove('spinning');
-  }, 1000); // Duration matches the animation duration
+  const wheels = document.querySelectorAll('.wheel');
+  wheels.forEach(wheel => {
+    wheel.classList.add('spinning');
+    setTimeout(() => {
+      wheel.classList.remove('spinning');
+    }, 1000); // Duration matches the animation duration
+  });
 }
 
 function updateChart() {

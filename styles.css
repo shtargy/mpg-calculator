@@ -48,6 +48,7 @@ canvas {
   top: 25%;
 }
 
+/* Wheel Styling */
 .wheel {
   position: absolute;
   width: 40px;
@@ -65,7 +66,35 @@ canvas {
   right: 20px;
 }
 
-.spinning .wheel {
+/* Spoke Styling */
+.spoke {
+  position: absolute;
+  width: 2px;
+  height: 20px;
+  background-color: #fff;
+  top: 50%;
+  left: 50%;
+  transform-origin: bottom center;
+}
+
+.spoke:nth-child(1) {
+  transform: rotate(0deg);
+}
+
+.spoke:nth-child(2) {
+  transform: rotate(90deg);
+}
+
+.spoke:nth-child(3) {
+  transform: rotate(180deg);
+}
+
+.spoke:nth-child(4) {
+  transform: rotate(270deg);
+}
+
+/* Spinning Animation */
+.spinning {
   animation: spin 1s linear infinite;
 }
 
