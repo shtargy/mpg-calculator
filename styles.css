@@ -20,3 +20,56 @@ canvas {
   max-width: 100%;
   height: auto;
 }
+
+/* Equation Styling */
+#equation {
+  margin: 20px 0;
+  font-size: 1.2em;
+}
+
+/* Car Animation Styling */
+.car-container {
+  margin: 20px 0;
+}
+
+.car {
+  position: relative;
+  width: 200px;
+  height: 100px;
+  margin: 0 auto;
+}
+
+.car-body {
+  position: absolute;
+  width: 100%;
+  height: 50%;
+  background-color: #007BFF;
+  border-radius: 10px 10px 0 0;
+  top: 25%;
+}
+
+.wheel {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background-color: #333;
+  border-radius: 50%;
+  bottom: 0;
+}
+
+.front-wheel {
+  left: 20px;
+}
+
+.back-wheel {
+  right: 20px;
+}
+
+.spinning .wheel {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

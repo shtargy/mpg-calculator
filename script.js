@@ -3,11 +3,28 @@ const tankInput = document.getElementById('tank');
 const mpgSlider = document.getElementById('mpg-slider');
 const tankSlider = document.getElementById('tank-slider');
 const ctx = document.getElementById('rangeChart').getContext('2d');
+const slopeDisplay = document.getElementById('slope');
+const interceptDisplay = document.getElementById('intercept');
+const car = document.querySelector('.car'); // Updated selector to target the .car div
 
 let chart;
 
 function calculateFuelRemaining(mpg, tank, miles) {
   return tank - (miles / mpg);
+}
+
+function updateEquation(mpg, tank) {
+  const slope = -1 / mpg;
+  const intercept = tank;
+  slopeDisplay.textContent = slope.toFixed(2);
+  interceptDisplay.textContent = intercept;
+}
+
+function triggerCarAnimation() {
+  car.classList.add('spinning');
+  setTimeout(() => {
+    car.classList.remove('spinning');
+  }, 1000); // Duration matches the animation duration
 }
 
 function updateChart() {
@@ -21,6 +38,9 @@ function updateChart() {
     labels.push(miles);
     data.push(calculateFuelRemaining(mpg, tank, miles));
   }
+
+  updateEquation(mpg, tank);
+  triggerCarAnimation();
 
   if (chart) {
     chart.data.labels = labels;
