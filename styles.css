@@ -4,6 +4,11 @@ body {
   margin: 20px;
 }
 
+body.dark-mode {
+  background-color: #121212;
+  color: #ffffff;
+}
+
 .input-container {
   margin: 10px 0;
 }
@@ -25,6 +30,15 @@ canvas {
 #equation {
   margin: 20px 0;
   font-size: 1.2em;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #ffffff;
+}
+
+.dark-mode .input-container label,
+.dark-mode .input-container input,
+.dark-mode button {
+  color: #ffffff;
+  background-color: #333333;
 }
 
 /* Car Animation Styling */

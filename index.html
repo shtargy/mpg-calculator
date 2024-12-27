@@ -10,16 +10,36 @@
 <body>
   <h1>Car Range Calculator</h1>
   
-  <!-- Input Containers -->
+  <!-- Dark Mode Toggle Button -->
+  <button id="toggleDarkMode">Toggle Dark Mode</button>
+  
+  <!-- MPG Input Container -->
   <div class="input-container">
     <label for="mpg">MPG:</label>
     <input type="number" id="mpg" name="mpg" min="1" value="25">
     <input type="range" id="mpg-slider" min="1" max="100" value="25">
   </div>
+  
+  <!-- Fuel Tank Volume Input Container -->
   <div class="input-container">
     <label for="tank">Fuel Tank Volume (gallons):</label>
     <input type="number" id="tank" name="tank" min="1" value="12">
     <input type="range" id="tank-slider" min="1" max="30" value="12">
+  </div>
+  
+  <!-- New Car Query Container -->
+  <div class="input-container">
+    <label for="carQuery">Enter Car Details:</label>
+    <div class="car-query-wrapper">
+      <input type="text" id="carQuery" name="carQuery" placeholder="e.g., 2023 Toyota Prius" />
+      <button id="submitCar">Submit</button>
+    </div>
+  </div>
+  
+  <!-- Car Details Display -->
+  <div class="input-container">
+    <label for="carDetails">Assumed Car Details:</label>
+    <input type="text" id="carDetails" name="carDetails" readonly />
   </div>
   
   <!-- Animated Car -->
@@ -34,7 +54,7 @@
       bottom: 50px;
       left: 90px; /* Moved 20px to the right */
       font-size: 16px;
-      color: #000;
+      /* Removed color: #000; to allow CSS to handle text color */
     ">
       y = <span id="slope">-0.04</span>x + <span id="intercept">12</span>
     </div>
@@ -43,20 +63,139 @@
   <style>
     body {
       background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+      transition: background-color 0.3s, color 0.3s;
     }
+
+    body.dark-mode {
+      background-color: #121212;
+      color: #ffffff;
+    }
+
+    .input-container {
+      margin: 10px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    @media (min-width: 768px) {
+      .input-container {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+
+    label {
+      margin-right: 10px;
+      margin-bottom: 5px;
+      min-width: 200px;
+      text-align: right;
+    }
+
+    .car-query-wrapper {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .car-query-wrapper input[type="text"] {
+      flex: 1;
+      padding: 5px;
+      margin-right: 10px;
+    }
+
+    input[type="number"],
+    input[type="range"] {
+      width: 80%;
+      max-width: 300px;
+      padding: 5px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 5px 15px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+      height: 35px; /* Ensure consistent height */
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
     .car-container {
       display: flex;
       justify-content: center;
       align-items: center;
+      margin: 20px 0;
     }
+
     #cybertruckGif {
       width: 450px; /* 1.5 times the original 300px */
       height: auto;
     }
-    #rangeChart {
-      background-color: #fff;
+
+    .chart-container {
+      margin-top: 40px;
+      background-color: transparent;
+    }
+
+    #equation {
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 5px 10px;
+      border-radius: 5px;
+      color: #000000; /* Set default text color */
+    }
+
+    body.dark-mode #equation {
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #ffffff; /* Text color for dark mode */
+    }
+
+    /* Loader Styling */
+    #loader {
+      display: none;
+      margin-top: 10px;
+    }
+
+    /* Dark Mode Toggle Button Styling */
+    #toggleDarkMode {
+      margin-bottom: 20px;
+      padding: 5px 10px;
+      background-color: #555555;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.dark-mode #toggleDarkMode {
+      background-color: #bbbbbb;
+      color: #000000;
     }
   </style>
+  
+  <div id="loader">
+    <p>Loading...</p>
+  </div>
+
+  <!--
+  <footer style="margin-top: 40px;">
+    <p>&copy; 2023 Car Range Calculator. All rights reserved.</p>
+    <p><a href="https://github.com/yourusername/car-range-calculator" target="_blank">GitHub Repository</a></p>
+  </footer>
+  -->
   
   <script src="script.js"></script>
 </body>

@@ -7,18 +7,19 @@ const slopeDisplay = document.getElementById('slope');
 const interceptDisplay = document.getElementById('intercept');
 const wheels = document.querySelectorAll('.wheel'); // Select all wheels
 
-let chart;
+let chart; // Declare chart variable
 let gifTimeout; // Variable to store the timeout ID
 
 function calculateFuelRemaining(mpg, tank, miles) {
-  return tank - (miles / mpg);
+  const fuelUsed = miles / mpg;
+  return Math.max(tank - fuelUsed, 0);
 }
 
 function updateEquation(mpg, tank) {
   const slope = -1 / mpg;
   const intercept = tank;
   slopeDisplay.textContent = slope.toFixed(2);
-  interceptDisplay.textContent = intercept;
+  interceptDisplay.textContent = intercept.toFixed(2);
 }
 
 function triggerCarAnimation() {
@@ -82,15 +83,31 @@ function updateChart() {
           label: 'Fuel Remaining (gallons)',
           data: data,
           borderColor: 'rgba(75, 192, 192, 1)',
-          fill: false,
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          fill: true,
+          tension: 0.4
         }]
       },
       options: {
-        responsive: false,           // Disable responsive resizing
-        maintainAspectRatio: false,  // Let width/height attributes control size
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+          },
+          tooltip: {
+            enabled: true,
+          }
+        },
         scales: {
-          x: { title: { display: true, text: 'Miles Driven' } },
-          y: { title: { display: true, text: 'Fuel Remaining (gallons)' }, beginAtZero: true }
+          x: { 
+            title: { display: true, text: 'Miles Driven' } 
+          },
+          y: { 
+            title: { display: true, text: 'Fuel Remaining (gallons)' }, 
+            beginAtZero: true 
+          }
         }
       }
     });
@@ -114,6 +131,50 @@ tankSlider.addEventListener("input", showGif);
 
 ["mpg","mpg-slider","tank","tank-slider"].forEach(id => {
   document.getElementById(id).addEventListener("input", playGifOnce);
+});
+
+document.getElementById('toggleDarkMode').addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode');
+});
+
+document.getElementById('submitCar').addEventListener('click', async () => {
+  const carQuery = document.getElementById('carQuery').value.trim();
+  if (carQuery === "") {
+    alert('Please enter a car description.');
+    return;
+  }
+
+  // Disable the button to prevent multiple submissions
+  document.getElementById('submitCar').disabled = true;
+  document.getElementById('submitCar').innerText = 'Processing...';
+
+  try {
+    const response = await fetch('process_car_query.php', { // Ensure the path is correct
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userQuery: carQuery })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      document.getElementById('mpg').value = data.mpg;
+      document.getElementById('tank').value = data.tank;
+      document.getElementById('mpg-slider').value = data.mpg;
+      document.getElementById('tank-slider').value = data.tank;
+      document.getElementById('carDetails').value = data.details;
+      updateChart();
+    } else {
+      alert(data.message || 'An error occurred while processing your request.');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Failed to fetch car data.');
+  } finally {
+    // Re-enable the button
+    document.getElementById('submitCar').disabled = false;
+    document.getElementById('submitCar').innerText = 'Submit';
+  }
 });
 
 updateChart();
