@@ -137,44 +137,4 @@ document.getElementById('toggleDarkMode').addEventListener('click', () => {
   document.body.classList.toggle('dark-mode');
 });
 
-document.getElementById('submitCar').addEventListener('click', async () => {
-  const carQuery = document.getElementById('carQuery').value.trim();
-  if (carQuery === "") {
-    alert('Please enter a car description.');
-    return;
-  }
-
-  // Disable the button to prevent multiple submissions
-  document.getElementById('submitCar').disabled = true;
-  document.getElementById('submitCar').innerText = 'Processing...';
-
-  try {
-    const response = await fetch('process_car_query.php', { // Ensure the path is correct
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userQuery: carQuery })
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      document.getElementById('mpg').value = data.mpg;
-      document.getElementById('tank').value = data.tank;
-      document.getElementById('mpg-slider').value = data.mpg;
-      document.getElementById('tank-slider').value = data.tank;
-      document.getElementById('carDetails').value = data.details;
-      updateChart();
-    } else {
-      alert(data.message || 'An error occurred while processing your request.');
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Failed to fetch car data.');
-  } finally {
-    // Re-enable the button
-    document.getElementById('submitCar').disabled = false;
-    document.getElementById('submitCar').innerText = 'Submit';
-  }
-});
-
 updateChart();

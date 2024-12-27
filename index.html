@@ -27,21 +27,6 @@
     <input type="range" id="tank-slider" min="1" max="30" value="12">
   </div>
   
-  <!-- New Car Query Container -->
-  <div class="input-container">
-    <label for="carQuery">Enter Car Details:</label>
-    <div class="car-query-wrapper">
-      <input type="text" id="carQuery" name="carQuery" placeholder="e.g., 2023 Toyota Prius" />
-      <button id="submitCar">Submit</button>
-    </div>
-  </div>
-  
-  <!-- Car Details Display -->
-  <div class="input-container">
-    <label for="carDetails">Assumed Car Details:</label>
-    <input type="text" id="carDetails" name="carDetails" readonly />
-  </div>
-  
   <!-- Animated Car -->
   <div class="car-container">
     <img id="cybertruckGif" src="cybertruckmiami_still.png" />
@@ -116,21 +101,6 @@
       max-width: 300px;
       padding: 5px;
       margin-bottom: 10px;
-    }
-
-    button {
-      padding: 5px 15px;
-      cursor: pointer;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      transition: background-color 0.3s;
-      height: 35px; /* Ensure consistent height */
-    }
-
-    button:hover {
-      background-color: #45a049;
     }
 
     .car-container {
