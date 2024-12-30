@@ -13,6 +13,7 @@ let isElectricMode = false;
 let chart;
 let gifTimeout;
 let chartUpdateTimeout;
+let gradientOffset = 0;
 
 function validateInput(value, min, max) {
   // If the value is empty or not a number, return as is
@@ -139,6 +140,28 @@ mpgSlider.value = 30;
 tankInput.value = 15;
 tankSlider.value = 15;
 
+function getNiceAxisEnd(range) {
+  // Target 5 divisions (6 ticks including 0)
+  const targetDivisions = 5;
+  
+  // Find a nice interval that divides the range into roughly 5 parts
+  const roughInterval = range / targetDivisions;
+  
+  // Round to a nice number (50, 100, 200, 500, etc.)
+  let niceInterval;
+  if (roughInterval <= 50) niceInterval = 50;
+  else if (roughInterval <= 100) niceInterval = 100;
+  else if (roughInterval <= 200) niceInterval = 200;
+  else if (roughInterval <= 500) niceInterval = 500;
+  else niceInterval = 1000;
+  
+  // Round up the range to the next nice interval
+  const baseEnd = Math.ceil(range / niceInterval) * niceInterval;
+  
+  // Add padding (10% of the interval) to ensure the last tick is visible
+  return baseEnd + (niceInterval * 0.1);
+}
+
 function updateChart() {
   const mpgMax = isElectricMode ? 10 : 100;
   const mpgMin = isElectricMode ? 0.5 : 1;
@@ -153,15 +176,20 @@ function updateChart() {
   const calcTank = Math.max(tank, 1);
 
   const range = calcMpg * calcTank;
-  const dataPoints = Math.min(range + 1, 500);
-  const step = range / (dataPoints - 1);
+  const niceEndValue = getNiceAxisEnd(range);
+  const stepSize = niceEndValue / 5;  // 5 divisions = 6 points including 0
+  
+  // Generate data points for the line
+  const dataPoints = Math.min(niceEndValue + 1, 500);
+  const step = niceEndValue / (dataPoints - 1);
   
   const labels = [];
   const data = [];
 
   for (let i = 0; i < dataPoints; i++) {
     const miles = i * step;
-    labels.push(Math.round(miles));
+    // Only add labels at the step points
+    labels.push('');  // Empty label for most points
     data.push(calculateFuelRemaining(calcMpg, calcTank, miles));
   }
 
@@ -169,96 +197,187 @@ function updateChart() {
   triggerCarAnimation();
 
   const isDarkMode = document.body.classList.contains('dark-mode');
-  const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-  const axisColor = isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
+  const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.1)';
+  const axisColor = isDarkMode ? '#ffffff' : '#000000';
+  const lineColor = isDarkMode ? '#ff00ff' : 'purple';
 
   const yAxisLabel = isElectricMode ? 'Battery Remaining (Kilowatt Hours)' : 'Fuel Remaining (gallons)';
 
-  if (chart) {
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = data;
-    chart.data.datasets[0].label = yAxisLabel;
-    chart.options.scales.x.grid.color = gridColor;
-    chart.options.scales.y.grid.color = gridColor;
-    chart.options.scales.x.ticks.color = axisColor;
-    chart.options.scales.y.ticks.color = axisColor;
-    chart.options.scales.x.title.color = axisColor;
-    chart.options.scales.y.title.color = axisColor;
-    chart.options.scales.y.title.text = yAxisLabel;
-    chart.options.plugins.legend.labels.color = axisColor;
-    chart.update('none');
-  } else {
-    // Create gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, 'rgba(128, 0, 128, 0.4)');
-    gradient.addColorStop(1, 'rgba(255, 200, 0, 0.1)');
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: {
+      duration: 0
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        labels: {
+          color: axisColor,
+          font: {
+            size: 14,
+            weight: 'bold'
+          }
+        }
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+        titleColor: axisColor,
+        bodyColor: axisColor,
+        padding: 10,
+        cornerRadius: 5,
+        titleFont: {
+          weight: 'bold'
+        }
+      }
+    },
+    scales: {
+      x: { 
+        grid: {
+          color: gridColor,
+          drawBorder: true,
+          borderColor: axisColor,
+          drawOnChartArea: true,
+          drawTicks: true,
+          lineWidth: isDarkMode ? 1.5 : 0.5
+        },
+        border: {
+          display: true,
+          color: axisColor,
+          width: 2
+        },
+        ticks: {
+          color: axisColor,
+          font: {
+            size: 12,
+            weight: isDarkMode ? 'bold' : 'normal'
+          }
+        },
+        title: { 
+          display: true, 
+          text: 'Miles Driven',
+          color: axisColor,
+          font: {
+            size: 14,
+            weight: 'bold'
+          }
+        },
+        min: 0,
+        max: niceEndValue
+      },
+      y: {
+        grid: {
+          color: gridColor,
+          drawBorder: true,
+          borderColor: axisColor,
+          drawOnChartArea: true,
+          drawTicks: true,
+          lineWidth: isDarkMode ? 1.5 : 0.5
+        },
+        border: {
+          display: true,
+          color: axisColor,
+          width: 2
+        },
+        ticks: {
+          color: axisColor,
+          font: {
+            size: 12,
+            weight: isDarkMode ? 'bold' : 'normal'
+          }
+        },
+        title: {
+          display: true,
+          text: yAxisLabel,
+          color: axisColor,
+          font: {
+            size: 14,
+            weight: 'bold'
+          }
+        },
+        min: 0,
+        max: Math.ceil(calcTank)
+      }
+    }
+  };
 
+  // Filter out negative Y values
+  const filteredData = Array.from({ length: dataPoints }, (_, i) => {
+    const x = i * step;
+    const y = calcTank - (x / calcMpg);
+    return y >= 0 ? { x, y } : null;
+  }).filter(point => point !== null);
+
+  // Remove the animated gradient class from the canvas
+  ctx.canvas.classList.remove('animated-gradient');
+
+  // Create a gradient for the dataset fill
+  const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+  if (isDarkMode) {
+    gradient.addColorStop(0, 'rgba(255, 0, 255, 0.2)');
+    gradient.addColorStop(0.5, 'rgba(153, 51, 255, 0.2)');
+    gradient.addColorStop(1, 'rgba(128, 0, 128, 0.2)');
+  } else {
+    gradient.addColorStop(0, 'rgba(128, 0, 128, 0.1)');
+    gradient.addColorStop(0.5, 'rgba(153, 51, 255, 0.1)');
+    gradient.addColorStop(1, 'rgba(255, 0, 255, 0.1)');
+  }
+
+  // Update chart data
+  if (chart) {
+    chart.data.datasets[0].data = filteredData;
+    chart.data.datasets[0].borderColor = lineColor;
+    chart.data.datasets[0].backgroundColor = gradient;
+    chart.data.datasets[0].label = isElectricMode ? 'Battery Remaining' : 'Fuel Remaining';
+    chart.options = {
+      ...chartOptions,
+      scales: {
+        ...chartOptions.scales,
+        x: {
+          ...chartOptions.scales.x,
+          type: 'linear',
+          position: 'bottom',
+          ticks: {
+            ...chartOptions.scales.x.ticks,
+            stepSize: stepSize,
+            callback: function(value) {
+              return Math.round(value);
+            }
+          }
+        }
+      }
+    };
+    chart.update();
+  } else {
     chart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: labels,
         datasets: [{
-          label: yAxisLabel,
-          data: data,
-          borderColor: 'rgba(128, 0, 128, 1)',
+          label: isElectricMode ? 'Battery Remaining' : 'Fuel Remaining',
+          data: filteredData,
+          borderColor: lineColor,
+          borderWidth: isDarkMode ? 3 : 2,
+          fill: 'origin',
           backgroundColor: gradient,
-          fill: true,
-          tension: 0.4
+          tension: 0.1
         }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: {
-          duration: 0
-        },
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              color: axisColor,
-              font: {
-                size: 14
-              }
-            }
-          },
-          tooltip: {
-            enabled: true,
-            backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-            titleColor: axisColor,
-            bodyColor: axisColor,
-            padding: 10,
-            cornerRadius: 5
-          }
-        },
+        ...chartOptions,
         scales: {
-          x: { 
-            title: { 
-              display: true, 
-              text: 'Miles Driven',
-              color: axisColor
-            },
+          ...chartOptions.scales,
+          x: {
+            ...chartOptions.scales.x,
+            type: 'linear',
+            position: 'bottom',
             ticks: {
-              maxTicksLimit: 10,
-              color: axisColor
-            },
-            grid: {
-              color: gridColor
-            }
-          },
-          y: { 
-            title: { 
-              display: true, 
-              text: yAxisLabel,
-              color: axisColor
-            },
-            beginAtZero: true,
-            ticks: {
-              color: axisColor
-            },
-            grid: {
-              color: gridColor
+              ...chartOptions.scales.x.ticks,
+              stepSize: stepSize,
+              callback: function(value) {
+                return Math.round(value);
+              }
             }
           }
         }
@@ -304,11 +423,6 @@ tankInput.addEventListener('input', () => syncInputs(tankInput, tankSlider));
 mpgSlider.addEventListener('input', () => syncInputs(mpgSlider, mpgInput));
 tankSlider.addEventListener('input', () => syncInputs(tankSlider, tankInput));
 
-const inputElements = [mpgInput, mpgSlider, tankInput, tankSlider];
-inputElements.forEach(element => {
-  element.addEventListener("input", playGifOnce);
-});
-
 // Update the dark mode toggle button text
 function updateDarkModeButtonText() {
   const button = document.getElementById('toggleDarkMode');
@@ -320,6 +434,13 @@ document.getElementById('toggleDarkMode').addEventListener('click', () => {
   document.body.classList.toggle('dark-mode');
   updateChart(); // Refresh chart with new colors
   updateDarkModeButtonText(); // Update button text
+
+  // Recreate chart to apply new grid color
+  if (chart) {
+    chart.destroy();
+    chart = null;
+    updateChart();
+  }
 });
 
 // Initialize button text on page load
@@ -336,6 +457,13 @@ document.getElementById('toggleCarMode').addEventListener('click', () => {
   updateLabels();
   updateChart();
   updateCarModeButtonText();
+  
+  // Play appropriate animation based on mode
+  if (isElectricMode) {
+    playLightningAnimation();
+  } else {
+    playFireAnimation();
+  }
   playGifOnce();
 });
 
@@ -358,3 +486,95 @@ window.addEventListener('beforeunload', () => {
 
 // Initialize the chart
 updateChart();
+
+// Add these functions near the top with other animation-related functions
+function playLightningAnimation() {
+  const bolts = document.querySelectorAll('.bolt');
+  bolts.forEach(bolt => {
+    bolt.parentElement.style.display = 'block';
+    bolt.classList.remove('animate');
+    void bolt.offsetWidth; // Force reflow
+    bolt.classList.add('animate');
+  });
+  
+  // Hide the lightning after animation (increased to 1600ms to match new duration)
+  setTimeout(() => {
+    bolts.forEach(bolt => {
+      bolt.parentElement.style.display = 'none';
+    });
+  }, 1600);
+}
+
+function playFireAnimation() {
+  const flames = document.querySelectorAll('.fire-effect');
+  flames.forEach(flame => {
+    flame.style.display = 'block';
+    const mainFlame = flame.querySelector('.flame-main');
+    const innerFlame = flame.querySelector('.flame-inner');
+    
+    mainFlame.classList.remove('animate');
+    innerFlame.classList.remove('animate');
+    void mainFlame.offsetWidth; // Force reflow
+    void innerFlame.offsetWidth;
+    mainFlame.classList.add('animate');
+    innerFlame.classList.add('animate');
+  });
+  
+  // Hide the fire after animation (increased to 1600ms to match new duration)
+  setTimeout(() => {
+    flames.forEach(flame => {
+      flame.style.display = 'none';
+    });
+  }, 1600);
+}
+
+// Update the input handlers to play animations
+function handleInput() {
+  if (isElectricMode) {
+    playLightningAnimation();
+  } else {
+    playFireAnimation();
+  }
+  playGifOnce();
+}
+
+// Define inputElements and set up event listeners for animations
+const inputElements = [mpgInput, mpgSlider, tankInput, tankSlider];
+
+// Remove existing event listeners and add new ones
+inputElements.forEach(element => {
+  const existingListener = element.getAttribute('data-has-animation');
+  if (existingListener === 'true') {
+    element.removeEventListener('input', handleInput);
+  }
+  element.addEventListener('input', handleInput);
+  element.setAttribute('data-has-animation', 'true');
+});
+
+// Initialize by hiding all effects
+document.addEventListener('DOMContentLoaded', () => {
+  const effects = document.querySelectorAll('.lightning-effect, .fire-effect');
+  effects.forEach(effect => {
+    effect.style.display = 'none';
+  });
+});
+
+function animateGradient() {
+  gradientOffset += 0.005; // Slower increment for smoother animation
+  if (gradientOffset > 2 * Math.PI) gradientOffset = 0;
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+  gradient.addColorStop(0, `rgba(128, 0, 128, ${0.1 + 0.05 * (1 + Math.cos(gradientOffset))})`);
+  gradient.addColorStop(0.5, `rgba(153, 51, 255, ${0.1 + 0.05 * (1 + Math.cos(gradientOffset + Math.PI / 2))})`);
+  gradient.addColorStop(1, `rgba(255, 0, 255, ${0.1 + 0.05 * (1 + Math.cos(gradientOffset + Math.PI))})`);
+
+  if (chart) {
+    chart.data.datasets[0].backgroundColor = gradient;
+    chart.update('none'); // Update without animation for smooth effect
+  }
+
+  requestAnimationFrame(animateGradient);
+}
+
+// Start the gradient animation
+animateGradient();
