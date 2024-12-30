@@ -1,7 +1,9 @@
 body {
+  background-color: #f0f0f0;
   font-family: Arial, sans-serif;
   text-align: center;
   margin: 20px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 body.dark-mode {
@@ -11,58 +13,113 @@ body.dark-mode {
 
 .input-container {
   margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .input-container {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
 }
 
 label {
   margin-right: 10px;
+  margin-bottom: 5px;
+  min-width: 200px;
+  text-align: right;
 }
 
-input[type="number"] {
-  width: 60px;
+input[type="number"],
+input[type="range"] {
+  width: 80%;
+  max-width: 300px;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+.car-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+#cybertruckGif {
+  width: 450px;
+  height: auto;
+  transition: opacity 0.3s;
+}
+
+.chart-container {
+  position: relative;
+  width: 90%;
+  max-width: 1000px;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  margin: 40px auto 0;
+  background-color: transparent;
 }
 
 canvas {
-  max-width: 100%;
-  height: auto;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
 }
 
-/* Equation Styling */
 #equation {
-  margin: 20px 0;
-  font-size: 1.2em;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: #ffffff;
-}
-
-.dark-mode .input-container label,
-.dark-mode .input-container input,
-.dark-mode button {
-  color: #ffffff;
-  background-color: #333333;
-}
-
-/* Car Animation Styling */
-.car-container {
-  margin: 20px 0;
-}
-
-.car {
-  position: relative;
-  width: 200px;
-  height: 100px;
-  margin: 0 auto;
-}
-
-.car-body {
   position: absolute;
-  width: 100%;
-  height: 50%;
-  background-color: #007BFF;
-  border-radius: 10px 10px 0 0;
-  top: 25%;
+  left: 15%;
+  bottom: 15%;
+  font-size: clamp(12px, 2vw, 16px);
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: #000000;
+  transition: background-color 0.3s, color 0.3s;
+  text-align: left;
+  z-index: 10;
+  transform: translate(-15%, -15%);
 }
 
-/* Wheel Styling */
+body.dark-mode #equation {
+  background-color: rgba(0, 0, 0, 0.9);
+  color: #ffffff;
+}
+
+#loader {
+  display: none;
+  margin-top: 10px;
+}
+
+#toggleDarkMode {
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  background-color: #555555;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+#toggleDarkMode:hover {
+  background-color: #666666;
+}
+
+body.dark-mode #toggleDarkMode {
+  background-color: #bbbbbb;
+  color: #000000;
+}
+
+body.dark-mode #toggleDarkMode:hover {
+  background-color: #cccccc;
+}
+
+/* Wheel Animation */
 .wheel {
   position: absolute;
   width: 40px;
@@ -70,51 +127,12 @@ canvas {
   background-color: #333;
   border-radius: 50%;
   bottom: 0;
-  /* Ensure the wheel is centered relative to the car-body */
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden; /* Prevent spokes from overflowing the wheel */
+  overflow: hidden;
 }
 
-.front-wheel {
-  left: 20px;
-}
-
-.back-wheel {
-  right: 20px;
-}
-
-/* Spoke Styling */
-.spoke {
-  position: absolute;
-  width: 2px;
-  height: 20px;
-  background-color: #fff;
-  top: 50%;
-  left: 50%;
-  transform-origin: top center; /* Set origin to top center */
-  transform: translate(-50%, 0) rotate(0deg);
-}
-
-/* Position each spoke at 0°, 90°, 180°, and 270° */
-.spoke:nth-child(1) {
-  transform: translate(-50%, 0) rotate(0deg);
-}
-
-.spoke:nth-child(2) {
-  transform: translate(-50%, 0) rotate(90deg);
-}
-
-.spoke:nth-child(3) {
-  transform: translate(-50%, 0) rotate(180deg);
-}
-
-.spoke:nth-child(4) {
-  transform: translate(-50%, 0) rotate(270deg);
-}
-
-/* Spinning Animation */
 .spinning {
   animation: spin 1s linear infinite;
 }
@@ -122,4 +140,131 @@ canvas {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 1000px) {
+  .chart-container {
+    width: 95%;
+  }
+  
+  #cybertruckGif {
+    width: 95%;
+    max-width: 450px;
+  }
+  
+  label {
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-container {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* Slider styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Slider Track */
+input[type="range"]::-webkit-slider-runnable-track {
+  background: #ddd;
+  height: 6px;
+  border-radius: 3px;
+  transition: background-color 0.3s;
+}
+
+input[type="range"]::-moz-range-track {
+  background: #ddd;
+  height: 6px;
+  border-radius: 3px;
+  transition: background-color 0.3s;
+}
+
+/* Slider Thumb */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -6px;
+  background-color: #555555;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  transition: all 0.3s;
+}
+
+input[type="range"]::-moz-range-thumb {
+  border: none;
+  background-color: #555555;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  transition: all 0.3s;
+}
+
+/* Slider hover effects */
+input[type="range"]:hover::-webkit-slider-thumb {
+  background-color: #666666;
+  transform: scale(1.1);
+}
+
+input[type="range"]:hover::-moz-range-thumb {
+  background-color: #666666;
+  transform: scale(1.1);
+}
+
+/* Dark mode slider styles */
+body.dark-mode input[type="range"]::-webkit-slider-runnable-track {
+  background: #444;
+}
+
+body.dark-mode input[type="range"]::-moz-range-track {
+  background: #444;
+}
+
+body.dark-mode input[type="range"]::-webkit-slider-thumb {
+  background-color: #888888;
+  border: 2px solid #222222;
+}
+
+body.dark-mode input[type="range"]::-moz-range-thumb {
+  background-color: #888888;
+  border: 2px solid #222222;
+}
+
+body.dark-mode input[type="range"]:hover::-webkit-slider-thumb {
+  background-color: #999999;
+}
+
+body.dark-mode input[type="range"]:hover::-moz-range-thumb {
+  background-color: #999999;
+}
+
+/* Focus styles */
+input[type="range"]:focus {
+  outline: none;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px rgba(128, 0, 128, 0.3);
+}
+
+input[type="range"]:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 2px rgba(128, 0, 128, 0.3);
+}
+
+body.dark-mode input[type="range"]:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+body.dark-mode input[type="range"]:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
 }

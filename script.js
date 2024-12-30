@@ -5,10 +5,17 @@ const tankSlider = document.getElementById('tank-slider');
 const ctx = document.getElementById('rangeChart').getContext('2d');
 const slopeDisplay = document.getElementById('slope');
 const interceptDisplay = document.getElementById('intercept');
-const wheels = document.querySelectorAll('.wheel'); // Select all wheels
+const wheels = document.querySelectorAll('.wheel');
 
-let chart; // Declare chart variable
-let gifTimeout; // Variable to store the timeout ID
+let chart;
+let gifTimeout;
+let chartUpdateTimeout;
+
+function validateInput(value, min, max) {
+  const num = parseFloat(value);
+  if (isNaN(num)) return min;
+  return Math.min(Math.max(num, min), max);
+}
 
 function calculateFuelRemaining(mpg, tank, miles) {
   const fuelUsed = miles / mpg;
@@ -18,63 +25,103 @@ function calculateFuelRemaining(mpg, tank, miles) {
 function updateEquation(mpg, tank) {
   const slope = -1 / mpg;
   const intercept = tank;
-  slopeDisplay.textContent = slope.toFixed(2);
-  interceptDisplay.textContent = intercept.toFixed(2);
+  slopeDisplay.textContent = slope.toFixed(3);
+  interceptDisplay.textContent = intercept.toFixed(1);
 }
 
 function triggerCarAnimation() {
   wheels.forEach(wheel => {
     wheel.classList.add('spinning');
-    setTimeout(() => {
-      wheel.classList.remove('spinning');
-    }, 1000); // Duration matches the CSS animation duration
+    setTimeout(() => wheel.classList.remove('spinning'), 1000);
   });
 }
 
 function showGif() {
   const gif = document.getElementById("cybertruckGif");
-  gif.style.display = "block"; 
-  // Reload the GIF each time to restart animation if desired:
-  gif.src = "cybertruckmiami.gif?t=" + new Date().getTime();
+  if (!gif) return;
+  
+  gif.style.display = "block";
+  gif.src = `cybertruckmiami.gif?t=${Date.now()}`;
 }
 
 function playGifOnce() {
   const gif = document.getElementById("cybertruckGif");
-  // Switch to the GIF, forcing a reload
-  gif.src = "cybertruckmiami.gif?t=" + Date.now();
-  
-  // Clear any existing timeout to prevent multiple timers
+  if (!gif) return;
+
+  // Clear existing timeout
   if (gifTimeout) {
     clearTimeout(gifTimeout);
+    gifTimeout = null;
   }
   
-  // After 5 seconds, revert to static image
+  // Play animation
+  gif.src = `cybertruckmiami.gif?t=${Date.now()}`;
+  
+  // Reset to static image after 5 seconds
   gifTimeout = setTimeout(() => {
     gif.src = "cybertruckmiami_still.png";
-    gifTimeout = null;
   }, 5000);
 }
 
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
 function updateChart() {
-  const mpg = parseFloat(mpgInput.value);
-  const tank = parseFloat(tankInput.value);
+  const mpg = validateInput(mpgInput.value, 1, 100);
+  const tank = validateInput(tankInput.value, 1, 30);
+  
+  // Update input values if they were invalid
+  mpgInput.value = mpg;
+  tankInput.value = tank;
+  mpgSlider.value = mpg;
+  tankSlider.value = tank;
+  
   const range = mpg * tank;
+  const dataPoints = Math.min(range + 1, 500);
+  const step = range / (dataPoints - 1);
+  
   const labels = [];
   const data = [];
 
-  for (let miles = 0; miles <= range; miles += 1) {
-    labels.push(miles);
+  for (let i = 0; i < dataPoints; i++) {
+    const miles = i * step;
+    labels.push(Math.round(miles));
     data.push(calculateFuelRemaining(mpg, tank, miles));
   }
 
   updateEquation(mpg, tank);
   triggerCarAnimation();
 
+  const isDarkMode = document.body.classList.contains('dark-mode');
+  const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+  const axisColor = isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
+
   if (chart) {
     chart.data.labels = labels;
     chart.data.datasets[0].data = data;
-    chart.update();
+    chart.options.scales.x.grid.color = gridColor;
+    chart.options.scales.y.grid.color = gridColor;
+    chart.options.scales.x.ticks.color = axisColor;
+    chart.options.scales.y.ticks.color = axisColor;
+    chart.options.scales.x.title.color = axisColor;
+    chart.options.scales.y.title.color = axisColor;
+    chart.options.plugins.legend.labels.color = axisColor;
+    chart.update('none');
   } else {
+    // Create gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(128, 0, 128, 0.4)');
+    gradient.addColorStop(1, 'rgba(255, 200, 0, 0.1)');
+
     chart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -82,8 +129,8 @@ function updateChart() {
         datasets: [{
           label: 'Fuel Remaining (gallons)',
           data: data,
-          borderColor: 'rgba(75, 192, 192, 1)',
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(128, 0, 128, 1)',
+          backgroundColor: gradient,
           fill: true,
           tension: 0.4
         }]
@@ -91,22 +138,57 @@ function updateChart() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+          duration: 0
+        },
         plugins: {
           legend: {
             display: true,
             position: 'top',
+            labels: {
+              color: axisColor,
+              font: {
+                size: 14
+              }
+            }
           },
           tooltip: {
             enabled: true,
+            backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            titleColor: axisColor,
+            bodyColor: axisColor,
+            padding: 10,
+            cornerRadius: 5
           }
         },
         scales: {
           x: { 
-            title: { display: true, text: 'Miles Driven' } 
+            title: { 
+              display: true, 
+              text: 'Miles Driven',
+              color: axisColor
+            },
+            ticks: {
+              maxTicksLimit: 10,
+              color: axisColor
+            },
+            grid: {
+              color: gridColor
+            }
           },
           y: { 
-            title: { display: true, text: 'Fuel Remaining (gallons)' }, 
-            beginAtZero: true 
+            title: { 
+              display: true, 
+              text: 'Fuel Remaining (gallons)',
+              color: axisColor
+            },
+            beginAtZero: true,
+            ticks: {
+              color: axisColor
+            },
+            grid: {
+              color: gridColor
+            }
           }
         }
       }
@@ -114,27 +196,55 @@ function updateChart() {
   }
 }
 
+// Debounce chart updates for better performance
+const debouncedUpdateChart = debounce(updateChart, 100);
+
 function syncInputs(source, target) {
-  target.value = source.value;
-  updateChart();
+  const value = validateInput(source.value, 1, source.max);
+  source.value = value;
+  target.value = value;
+  debouncedUpdateChart();
 }
 
+// Event Listeners
 mpgInput.addEventListener('input', () => syncInputs(mpgInput, mpgSlider));
 mpgSlider.addEventListener('input', () => syncInputs(mpgSlider, mpgInput));
 tankInput.addEventListener('input', () => syncInputs(tankInput, tankSlider));
 tankSlider.addEventListener('input', () => syncInputs(tankSlider, tankInput));
 
-mpgInput.addEventListener("input", showGif);
-mpgSlider.addEventListener("input", showGif);
-tankInput.addEventListener("input", showGif);
-tankSlider.addEventListener("input", showGif);
-
-["mpg","mpg-slider","tank","tank-slider"].forEach(id => {
-  document.getElementById(id).addEventListener("input", playGifOnce);
+const inputElements = [mpgInput, mpgSlider, tankInput, tankSlider];
+inputElements.forEach(element => {
+  element.addEventListener("input", playGifOnce);
 });
+
+// Update the dark mode toggle button text
+function updateDarkModeButtonText() {
+  const button = document.getElementById('toggleDarkMode');
+  const isDarkMode = document.body.classList.contains('dark-mode');
+  button.textContent = isDarkMode ? 'Toggle Light Mode' : 'Toggle Dark Mode';
+}
 
 document.getElementById('toggleDarkMode').addEventListener('click', () => {
   document.body.classList.toggle('dark-mode');
+  updateChart(); // Refresh chart with new colors
+  updateDarkModeButtonText(); // Update button text
 });
 
+// Initialize button text on page load
+updateDarkModeButtonText();
+
+// Cleanup function
+window.addEventListener('beforeunload', () => {
+  if (chart) {
+    chart.destroy();
+  }
+  if (gifTimeout) {
+    clearTimeout(gifTimeout);
+  }
+  if (chartUpdateTimeout) {
+    clearTimeout(chartUpdateTimeout);
+  }
+});
+
+// Initialize the chart
 updateChart();
