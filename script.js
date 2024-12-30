@@ -2,19 +2,25 @@ const mpgInput = document.getElementById('mpg');
 const tankInput = document.getElementById('tank');
 const mpgSlider = document.getElementById('mpg-slider');
 const tankSlider = document.getElementById('tank-slider');
+const mpgLabel = document.getElementById('mpgLabel');
+const tankLabel = document.getElementById('tankLabel');
 const ctx = document.getElementById('rangeChart').getContext('2d');
 const slopeDisplay = document.getElementById('slope');
 const interceptDisplay = document.getElementById('intercept');
 const wheels = document.querySelectorAll('.wheel');
 
+let isElectricMode = false;
 let chart;
 let gifTimeout;
 let chartUpdateTimeout;
 
 function validateInput(value, min, max) {
+  // If the value is empty or not a number, return as is
+  if (value === '' || isNaN(value)) return value;
+  
   const num = parseFloat(value);
-  if (isNaN(num)) return min;
-  return Math.min(Math.max(num, min), max);
+  // Round to 1 decimal place to avoid floating point issues
+  return Math.round(num * 10) / 10;
 }
 
 function calculateFuelRemaining(mpg, tank, miles) {
@@ -75,17 +81,78 @@ function debounce(func, wait) {
   };
 }
 
+function updateLabels() {
+  const mpgText = isElectricMode ? 'Miles/Kilowatt Hour:' : 'MPG:';
+  const tankText = isElectricMode ? 'Battery Capacity (Kilowatt Hours):' : 'Fuel Tank Volume (gallons):';
+  mpgLabel.textContent = mpgText;
+  tankLabel.textContent = tankText;
+  
+  // Update ranges and values based on mode
+  if (isElectricMode) {
+    // Electric mode ranges
+    mpgInput.min = 0;
+    mpgInput.max = 10;
+    mpgInput.step = 0.1;
+    mpgSlider.min = 0.5;
+    mpgSlider.max = 10;
+    mpgSlider.step = 0.1;
+    tankInput.min = 0;
+    tankInput.max = 150;
+    tankInput.step = 0.1;
+    tankSlider.min = 1;
+    tankSlider.max = 150;
+    tankSlider.step = 0.1;
+    
+    // Set default values for electric mode if switching to it
+    mpgInput.value = 4;
+    mpgSlider.value = 4;
+    tankInput.value = 75;
+    tankSlider.value = 75;
+  } else {
+    // Gas mode ranges
+    mpgInput.min = 0;
+    mpgInput.max = 100;
+    mpgInput.step = 1;
+    mpgSlider.min = 1;
+    mpgSlider.max = 100;
+    mpgSlider.step = 1;
+    tankInput.min = 0;
+    tankInput.max = 100;
+    tankInput.step = 1;
+    tankSlider.min = 1;
+    tankSlider.max = 100;
+    tankSlider.step = 1;
+    
+    // Set default values for gas mode if switching to it
+    mpgInput.value = 30;
+    mpgSlider.value = 30;
+    tankInput.value = 15;
+    tankSlider.value = 15;
+  }
+  
+  updateChart();
+}
+
+// Update initial default values
+mpgInput.value = 30;
+mpgSlider.value = 30;
+tankInput.value = 15;
+tankSlider.value = 15;
+
 function updateChart() {
-  const mpg = validateInput(mpgInput.value, 1, 100);
-  const tank = validateInput(tankInput.value, 1, 30);
+  const mpgMax = isElectricMode ? 10 : 100;
+  const mpgMin = isElectricMode ? 0.5 : 1;
+  const tankMax = isElectricMode ? 150 : 100;
   
-  // Update input values if they were invalid
-  mpgInput.value = mpg;
-  tankInput.value = tank;
-  mpgSlider.value = mpg;
-  tankSlider.value = tank;
+  // Get the current values
+  let mpg = mpgInput.value === '' || isNaN(mpgInput.value) ? 0 : parseFloat(mpgInput.value);
+  let tank = tankInput.value === '' || isNaN(tankInput.value) ? 0 : parseFloat(tankInput.value);
   
-  const range = mpg * tank;
+  // Use minimum values for calculations if inputs are too low
+  const calcMpg = Math.max(mpg, isElectricMode ? 0.5 : 1);
+  const calcTank = Math.max(tank, 1);
+
+  const range = calcMpg * calcTank;
   const dataPoints = Math.min(range + 1, 500);
   const step = range / (dataPoints - 1);
   
@@ -95,25 +162,29 @@ function updateChart() {
   for (let i = 0; i < dataPoints; i++) {
     const miles = i * step;
     labels.push(Math.round(miles));
-    data.push(calculateFuelRemaining(mpg, tank, miles));
+    data.push(calculateFuelRemaining(calcMpg, calcTank, miles));
   }
 
-  updateEquation(mpg, tank);
+  updateEquation(calcMpg, calcTank);
   triggerCarAnimation();
 
   const isDarkMode = document.body.classList.contains('dark-mode');
   const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
   const axisColor = isDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
 
+  const yAxisLabel = isElectricMode ? 'Battery Remaining (Kilowatt Hours)' : 'Fuel Remaining (gallons)';
+
   if (chart) {
     chart.data.labels = labels;
     chart.data.datasets[0].data = data;
+    chart.data.datasets[0].label = yAxisLabel;
     chart.options.scales.x.grid.color = gridColor;
     chart.options.scales.y.grid.color = gridColor;
     chart.options.scales.x.ticks.color = axisColor;
     chart.options.scales.y.ticks.color = axisColor;
     chart.options.scales.x.title.color = axisColor;
     chart.options.scales.y.title.color = axisColor;
+    chart.options.scales.y.title.text = yAxisLabel;
     chart.options.plugins.legend.labels.color = axisColor;
     chart.update('none');
   } else {
@@ -127,7 +198,7 @@ function updateChart() {
       data: {
         labels: labels,
         datasets: [{
-          label: 'Fuel Remaining (gallons)',
+          label: yAxisLabel,
           data: data,
           borderColor: 'rgba(128, 0, 128, 1)',
           backgroundColor: gradient,
@@ -179,7 +250,7 @@ function updateChart() {
           y: { 
             title: { 
               display: true, 
-              text: 'Fuel Remaining (gallons)',
+              text: yAxisLabel,
               color: axisColor
             },
             beginAtZero: true,
@@ -200,16 +271,37 @@ function updateChart() {
 const debouncedUpdateChart = debounce(updateChart, 100);
 
 function syncInputs(source, target) {
-  const value = validateInput(source.value, 1, source.max);
-  source.value = value;
-  target.value = value;
-  debouncedUpdateChart();
+  if (source.type === 'number') {
+    // For number inputs, allow any input including empty string
+    if (source.value === '') {
+      debouncedUpdateChart();
+      return;
+    }
+    
+    // Only validate and update if we have a number
+    if (!isNaN(source.value)) {
+      const value = validateInput(source.value);
+      // Only update slider if the value is within its range
+      if (value >= target.min && value <= target.max) {
+        target.value = value;
+      }
+      debouncedUpdateChart();
+    }
+  } else {
+    // For slider inputs
+    const value = validateInput(source.value, source.min, source.max);
+    if (value !== '') {
+      source.value = value;
+      target.value = value;
+      debouncedUpdateChart();
+    }
+  }
 }
 
 // Event Listeners
 mpgInput.addEventListener('input', () => syncInputs(mpgInput, mpgSlider));
-mpgSlider.addEventListener('input', () => syncInputs(mpgSlider, mpgInput));
 tankInput.addEventListener('input', () => syncInputs(tankInput, tankSlider));
+mpgSlider.addEventListener('input', () => syncInputs(mpgSlider, mpgInput));
 tankSlider.addEventListener('input', () => syncInputs(tankSlider, tankInput));
 
 const inputElements = [mpgInput, mpgSlider, tankInput, tankSlider];
@@ -232,6 +324,24 @@ document.getElementById('toggleDarkMode').addEventListener('click', () => {
 
 // Initialize button text on page load
 updateDarkModeButtonText();
+
+// Update the car mode toggle button text
+function updateCarModeButtonText() {
+  const button = document.getElementById('toggleCarMode');
+  button.textContent = isElectricMode ? 'Gas Car Mode' : 'Electric Car Mode';
+}
+
+document.getElementById('toggleCarMode').addEventListener('click', () => {
+  isElectricMode = !isElectricMode;
+  updateLabels();
+  updateChart();
+  updateCarModeButtonText();
+  playGifOnce();
+});
+
+// Initialize labels and button text on page load
+updateLabels();
+updateCarModeButtonText();
 
 // Cleanup function
 window.addEventListener('beforeunload', () => {

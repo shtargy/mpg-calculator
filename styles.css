@@ -95,7 +95,8 @@ body.dark-mode #equation {
   margin-top: 10px;
 }
 
-#toggleDarkMode {
+#toggleDarkMode,
+#toggleCarMode {
   margin-bottom: 20px;
   padding: 8px 16px;
   background-color: #555555;
@@ -104,18 +105,22 @@ body.dark-mode #equation {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
+  margin-right: 10px;
 }
 
-#toggleDarkMode:hover {
+#toggleDarkMode:hover,
+#toggleCarMode:hover {
   background-color: #666666;
 }
 
-body.dark-mode #toggleDarkMode {
+body.dark-mode #toggleDarkMode,
+body.dark-mode #toggleCarMode {
   background-color: #bbbbbb;
   color: #000000;
 }
 
-body.dark-mode #toggleDarkMode:hover {
+body.dark-mode #toggleDarkMode:hover,
+body.dark-mode #toggleCarMode:hover {
   background-color: #cccccc;
 }
 
